@@ -1,4 +1,5 @@
 import MapScene from "./src/scenes/MapScene.js";
+import InteriorScene from "./src/scenes/InteriorScene.js";
 
 const config = {
     type: Phaser.AUTO,
@@ -11,7 +12,7 @@ const config = {
             debug: false
         }
     },
-    scene: MapScene
+    scene: [MapScene, InteriorScene]
 };
 
 var game = new Phaser.Game(config);
