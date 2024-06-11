@@ -3,6 +3,8 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         super(scene, x, y, texture)
         scene.add.existing(this);
         scene.physics.add.existing(this);
+        this.scene = scene;
+        this.isPlayerOverlappingFarmingArea = false;
 
         this.setSize(16, 16);
         this.setScale(0.3);
@@ -19,7 +21,9 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             {up:Phaser.Input.Keyboard.KeyCodes.W,
             down:Phaser.Input.Keyboard.KeyCodes.S,
             left:Phaser.Input.Keyboard.KeyCodes.A,
-            right:Phaser.Input.Keyboard.KeyCodes.D});
+            right:Phaser.Input.Keyboard.KeyCodes.D,
+            plant:Phaser.Input.Keyboard.KeyCodes.E
+        });
     }
 
     createAnimations(scene){
@@ -76,7 +80,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         })
     }
 
-    move (){
+    move(){
         if(this.cursors.left.isDown){
             this.setVelocityX(-this.velocity);
             this.setVelocityY(0);
@@ -101,6 +105,35 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             this.setVelocityX(0);
             this.setVelocityY(0);
             this.anims.play(this.lastDirection)
+        }
+    }
+
+    plant(){
+        if(this.isPlayerOverlappingFarmingArea && Phaser.Input.Keyboard.JustDown(this.cursors.plant)){
+            console.log("PLANT!");
+            const playerTileX = this.scene.crops.worldToTileX(this.x);
+            const playerTileY = this.scene.crops.worldToTileY(this.y);
+
+            const tile = this.scene.crops.getTileAt(playerTileX, playerTileY);
+            tile.properties.isCropPlanted = true;
+            tile.index = 5049;
+            this.scene.crops.dirty = true;
+            console.log(tile);
+        }
+    }
+
+    playerOnFarmingArea(){
+        const playerTileX = this.scene.crops.worldToTileX(this.x);
+        const playerTileY = this.scene.crops.worldToTileY(this.y);
+
+        const tile = this.scene.crops.getTileAt(playerTileX, playerTileY);
+
+        if(tile && tile.layer.name === 'Crops' && !this.isPlayerOverlappingFarmingArea){
+            console.log("Jetzt kann gefarmt werden")
+            this.isPlayerOverlappingFarmingArea = true;
+        } else if((!tile || tile.layer.name !== 'Crops') && this.isPlayerOverlappingFarmingArea){
+            console.log("Jetzt kann nicht mehr gefarmt werden")
+            this.isPlayerOverlappingFarmingArea = false;
         }
     }
 }

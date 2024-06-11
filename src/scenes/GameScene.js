@@ -7,6 +7,7 @@ class GameScene extends Phaser.Scene {
         super({key: 'GameScene'});
         this.fencegate = null;
         this.isPlayerOverlappingFencegate = false;
+        this.crops = null;
     }
 
     preload(){
@@ -35,7 +36,7 @@ class GameScene extends Phaser.Scene {
         const garden = map.createDynamicLayer("Garden", tileset);
         const farming_area = map.createDynamicLayer("Farming Area", tileset);
         const houses = map.createDynamicLayer("Houses", tileset);
-        const crops = map.createDynamicLayer("Crops", tileset).setVisible(false);;
+        this.crops = map.createDynamicLayer("Crops", tileset).set;
         const collision_layer = map.createStaticLayer("Collision", tileset).setVisible(false);
         const foreground_objects = map.createDynamicLayer("Foreground Objects",  tileset).setDepth(10);
 
@@ -78,9 +79,9 @@ class GameScene extends Phaser.Scene {
                 this.isPlayerOverlappingFencegate = false;
             }, [], this);
         }
+        this.player.playerOnFarmingArea();
+        this.player.plant();
     }
-
-
 }
 
 export default GameScene;
