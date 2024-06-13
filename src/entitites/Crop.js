@@ -19,7 +19,7 @@ class Crops {
             if (this.tile.properties.growthStage < 5) {
                 this.growCrops();
             }
-        }, 6000);
+        }, 200);
     }
 }
 

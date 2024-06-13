@@ -10,8 +10,11 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.currentSeed = 'carrotSeed';
         this.seeds = new Map();
         this.seeds.set('carrotSeed', 5049);
-        this.seeds.set('potatoSeed', 5789);
+        this.seeds.set('tomatoSeed', 5197);
+        this.seeds.set('berriesSeed', 5345);
         this.seeds.set('pumpkinSeed', 5493);
+        this.seeds.set('cornSeed', 5641);
+        this.seeds.set('potatoSeed', 5789);
 
 
         this.setSize(16, 16);
@@ -126,10 +129,11 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             const tile = this.scene.crops.getTileAt(playerTileX, playerTileY);
             if(!tile.properties.isCropPlanted){
                 tile.properties.isCropPlanted = true;
+                tile.properties.crop = this.currentSeed;
                 new Crop(this.scene, tile, this.seeds.get(this.currentSeed));
 
             } else if(tile.properties.growthStage === 5){
-                console.log("Ernte!");
+                this.uiScene.addItemToInventory(tile.properties.crop);
                 tile.index = 7550;
                 tile.properties.isCropPlanted = false;
                 tile.properties.growthStage = 0;
