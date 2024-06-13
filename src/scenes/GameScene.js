@@ -1,6 +1,7 @@
 import Player from '../entitites/player.js';
 import Door from '../objects/Door.js';
 import Fencegate from '../objects/Fencegate.js';
+import UI from './UI.js';
 
 class GameScene extends Phaser.Scene {
     constructor(){
@@ -8,14 +9,7 @@ class GameScene extends Phaser.Scene {
         this.fencegate = null;
         this.isPlayerOverlappingFencegate = false;
         this.crops = null;
-    }
-
-    preload(){
-        this.load.image('global', '../assets/tilesets/tileset.png');
-        this.load.tilemapTiledJSON('map', '../assets/gameMap.json');
-        this.load.spritesheet('playerModel', '../images/player.png', {frameWidth: 48, frameHeight: 68});
-        this.load.spritesheet('doorModel', '../images/doorTexture.png', {frameWidth: 48, frameHeight: 21});
-        this.load.spritesheet('fencegateModel', '../images/fencegateTexture.png', {frameWidth: 16, frameHeight: 16});
+        this.uiScene = null;
     }
 
     create(){
@@ -36,7 +30,7 @@ class GameScene extends Phaser.Scene {
         const garden = map.createDynamicLayer("Garden", tileset);
         const farming_area = map.createDynamicLayer("Farming Area", tileset);
         const houses = map.createDynamicLayer("Houses", tileset);
-        this.crops = map.createDynamicLayer("Crops", tileset).set;
+        this.crops = map.createDynamicLayer("Crops", tileset);
         const collision_layer = map.createStaticLayer("Collision", tileset).setVisible(false);
         const foreground_objects = map.createDynamicLayer("Foreground Objects",  tileset).setDepth(10);
 
@@ -50,10 +44,12 @@ class GameScene extends Phaser.Scene {
         this.fencegate = new Fencegate(this, fencegateObject.x + 8, fencegateObject.y - 8, 'fencegateModel');
         this.add.existing(this.fencegate);
 
-
         this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-        this.player = new Player(this, 1552, 1200, 'playerModel');
+        this.uiScene = this.scene.get('UI');
+        this.scene.launch('UI');
+
+        this.player = new Player(this, 1552, 1200, 'playerModel', this.uiScene);
 
         this.physics.add.collider(this.player, collision_layer);
         collision_layer.setCollision(7549, true, collision_layer);
@@ -61,10 +57,11 @@ class GameScene extends Phaser.Scene {
         this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
         this.cameras.main.startFollow(this.player);
         this.cameras.main.setZoom(3.5);
+
     }
 
     update(){
-        this.player.move();
+        this.player.update();
 
         const isPlayerOverlapping = this.physics.world.overlap(this.player, this.fencegate);
 
@@ -79,8 +76,6 @@ class GameScene extends Phaser.Scene {
                 this.isPlayerOverlappingFencegate = false;
             }, [], this);
         }
-        this.player.playerOnFarmingArea();
-        this.player.plant();
     }
 }
 

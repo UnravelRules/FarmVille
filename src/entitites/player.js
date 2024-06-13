@@ -1,10 +1,18 @@
+import Crop from '../entitites/Crop.js'
 class Player extends Phaser.Physics.Arcade.Sprite {
-    constructor(scene, x, y, texture){
+    constructor(scene, x, y, texture, uiScene){
         super(scene, x, y, texture)
         scene.add.existing(this);
         scene.physics.add.existing(this);
         this.scene = scene;
         this.isPlayerOverlappingFarmingArea = false;
+        this.uiScene = uiScene;
+        this.currentSeed = 'carrotSeed';
+        this.seeds = new Map();
+        this.seeds.set('carrotSeed', 5049);
+        this.seeds.set('potatoSeed', 5789);
+        this.seeds.set('pumpkinSeed', 5493);
+
 
         this.setSize(16, 16);
         this.setScale(0.3);
@@ -22,7 +30,9 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             down:Phaser.Input.Keyboard.KeyCodes.S,
             left:Phaser.Input.Keyboard.KeyCodes.A,
             right:Phaser.Input.Keyboard.KeyCodes.D,
-            plant:Phaser.Input.Keyboard.KeyCodes.E
+            plant:Phaser.Input.Keyboard.KeyCodes.E,
+            previousSeed: Phaser.Input.Keyboard.KeyCodes.LEFT,
+            nextSeed: Phaser.Input.Keyboard.KeyCodes.RIGHT
         });
     }
 
@@ -110,16 +120,21 @@ class Player extends Phaser.Physics.Arcade.Sprite {
 
     plant(){
         if(this.isPlayerOverlappingFarmingArea && Phaser.Input.Keyboard.JustDown(this.cursors.plant)){
-            console.log("PLANT!");
             const playerTileX = this.scene.crops.worldToTileX(this.x);
             const playerTileY = this.scene.crops.worldToTileY(this.y);
 
             const tile = this.scene.crops.getTileAt(playerTileX, playerTileY);
-            tile.properties.isCropPlanted = true;
-            tile.index = 5049;
-            this.scene.crops.dirty = true;
-            console.log(tile);
-        }
+            if(!tile.properties.isCropPlanted){
+                tile.properties.isCropPlanted = true;
+                new Crop(this.scene, tile, this.seeds.get(this.currentSeed));
+
+            } else if(tile.properties.growthStage === 5){
+                console.log("Ernte!");
+                tile.index = 7550;
+                tile.properties.isCropPlanted = false;
+                tile.properties.growthStage = 0;
+            }
+        } 
     }
 
     playerOnFarmingArea(){
@@ -134,6 +149,18 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         } else if((!tile || tile.layer.name !== 'Crops') && this.isPlayerOverlappingFarmingArea){
             console.log("Jetzt kann nicht mehr gefarmt werden")
             this.isPlayerOverlappingFarmingArea = false;
+        }
+    }
+
+    update(){
+        this.move();
+        this.playerOnFarmingArea();
+        this.plant();
+
+        if (Phaser.Input.Keyboard.JustDown(this.cursors.previousSeed)) {
+            this.currentSeed = this.uiScene.previousSeed();
+        } else if (Phaser.Input.Keyboard.JustDown(this.cursors.nextSeed)) {
+            this.currentSeed = this.uiScene.nextSeed();
         }
     }
 }
