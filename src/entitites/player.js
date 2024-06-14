@@ -21,7 +21,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.setScale(0.3);
         this.setCollideWorldBounds(true);
         
-        this.velocity = 100;
+        this.velocity = 400;
         
         this.lastDirection = 'down';
 

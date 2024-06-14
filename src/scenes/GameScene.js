@@ -7,7 +7,9 @@ class GameScene extends Phaser.Scene {
     constructor(){
         super({key: 'GameScene'});
         this.fencegate = null;
-        this.isPlayerOverlappingFencegate = false;
+        //this.isPlayerOverlappingFencegate = false;
+        this.fencegates = []; // Initialize an array to store all fencegate objects
+        this.isPlayerOverlappingFencegates = new Map();
         this.crops = null;
         this.uiScene = null;
     }
@@ -27,7 +29,8 @@ class GameScene extends Phaser.Scene {
         const walls = map.createDynamicLayer("Walls", tileset);
         const edges = map.createDynamicLayer("Edges", tileset);
         const paths = map.createDynamicLayer("Paths", tileset);
-        const garden = map.createDynamicLayer("Garden", tileset);
+        const fences = map.createDynamicLayer("Fences", tileset);
+        const decorations = map.createDynamicLayer("Decoration", tileset);
         const farming_area = map.createDynamicLayer("Farming Area", tileset);
         const houses = map.createDynamicLayer("Houses", tileset);
         this.crops = map.createDynamicLayer("Crops", tileset);
@@ -37,12 +40,18 @@ class GameScene extends Phaser.Scene {
         const doorLayer = map.getObjectLayer('Doors');
         // const doorTopObject = doorLayer.objects.find(object => object.name === 'doorTop');
         // const doorBottomObject = doorLayer.objects.find(object => object.name === 'doorBottom');
-        const fencegateObject = doorLayer.objects.find(object => object.name === 'Fencegate');
         
         // const doorTop = new Door(this, doorTopObject.x, doorTopObject.y, 'doorModel');
         // const doorBottom = new Door(this, doorBottomObject.x, doorBottomObject.y, 'doorModel');
-        this.fencegate = new Fencegate(this, fencegateObject.x + 8, fencegateObject.y - 8, 'fencegateModel');
-        this.add.existing(this.fencegate);
+        doorLayer.objects.forEach(object => {
+            if (object.name === 'Fencegate') {
+                const fencegate = new Fencegate(this, object.x + 8, object.y - 8, 'fencegateModel');
+                this.add.existing(fencegate);
+                this.fencegates.push(fencegate);
+                this.isPlayerOverlappingFencegates.set(fencegate, false);
+            }
+        });
+
 
         this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
@@ -63,19 +72,22 @@ class GameScene extends Phaser.Scene {
     update(){
         this.player.update();
 
-        const isPlayerOverlapping = this.physics.world.overlap(this.player, this.fencegate);
+        this.fencegates.forEach(fencegate => {
+            const isPlayerOverlapping = this.physics.world.overlap(this.player, fencegate);
+            const wasPlayerOverlapping = this.isPlayerOverlappingFencegates.get(fencegate);
 
-        if (isPlayerOverlapping && !this.isPlayerOverlappingFencegate) {
-            // Player has entered the fencegate area
-            this.fencegate.openDoor();
-            this.isPlayerOverlappingFencegate = true;
-        } else if (!isPlayerOverlapping && this.isPlayerOverlappingFencegate) {
-            // Player has left the fencegate area
-            this.time.delayedCall(100, () => {
-                this.fencegate.closeDoor();
-                this.isPlayerOverlappingFencegate = false;
-            }, [], this);
-        }
+            if (isPlayerOverlapping && !wasPlayerOverlapping) {
+                // Player has entered the fencegate area
+                fencegate.openDoor();
+                this.isPlayerOverlappingFencegates.set(fencegate, true);
+            } else if (!isPlayerOverlapping && wasPlayerOverlapping) {
+                // Player has left the fencegate area
+                this.time.delayedCall(100, () => {
+                    fencegate.closeDoor();
+                    this.isPlayerOverlappingFencegates.set(fencegate, false);
+                }, [], this);
+            }
+        });
     }
 }
 
