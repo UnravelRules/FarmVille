@@ -7,10 +7,8 @@ class GameScene extends Phaser.Scene {
     constructor(){
         super({key: 'GameScene'});
         this.fencegate = null;
-        //this.isPlayerOverlappingFencegate = false;
-        //this.fencegates = []; // Initialize an array to store all fencegate objects
         this.doors = [];
-        //this.isPlayerOverlappingFencegates = new Map();
+        this.animals = [];
         this.isPlayerOverlappingDoors = new Map();
         this.exit = null;
         this.crops = null;
@@ -20,8 +18,17 @@ class GameScene extends Phaser.Scene {
     }
 
     create(){
+        this.cameras.main.fadeIn(3500, 0, 0, 0);
+
         const map = this.make.tilemap({key: 'map', tileWidth: 16, tileHeight: 16});
         const tileset = map.addTilesetImage('global');
+
+        this.music = this.sound.add('music', {loop: true, volume: 0.1});
+        this.music.play();
+
+        this.marketDoorSound = this.sound.add('marketDoor', {volume: 0.2})
+        this.doorSound = this.sound.add('door', {volume: 0.2})
+        this.closeDoorSound = this.sound.add('closeDoor', {volume: 0.2});
 
         // Create Layers (IMPORTANT: Names have to be the same as in Tiled)
         const water = map.createDynamicLayer("Water", tileset);
@@ -42,8 +49,9 @@ class GameScene extends Phaser.Scene {
         const fences = map.createDynamicLayer("Fences", tileset);
         const houses = map.createDynamicLayer("Houses", tileset);
         const decorations = map.createDynamicLayer("Decoration", tileset);
+        const decorations2 = map.createDynamicLayer("Decoration2", tileset);
         this.crops = map.createDynamicLayer("Crops", tileset);
-        const collision_layer = map.createStaticLayer("Collision", tileset).setVisible(false);
+        this.collision_layer = map.createStaticLayer("Collision", tileset).setVisible(false);
         const foreground_objects = map.createDynamicLayer("Foreground Objects",  tileset).setDepth(10); 
 
         const ObjectLayer = map.getObjectLayer('ObjectLayer');
@@ -54,15 +62,27 @@ class GameScene extends Phaser.Scene {
                 this.add.existing(fencegate);
                 this.doors.push(fencegate);
                 this.isPlayerOverlappingDoors.set(fencegate, false);
-            } else if (object.name === 'barnDoor') {
-                const marketDoor = new Door(this, object.x + 7, object.y + 10, 'barnDoor', 'barnDoor').setDepth(10);
-                this.add.existing(marketDoor);
-                this.doors.push(marketDoor);
-                this.isPlayerOverlappingDoors.set(marketDoor, false);
+            } else if (object.name === 'chickenBarnDoor') {
+                const chickenBarnDoor = new Door(this, object.x + 7, object.y + 10, 'barnDoor', 'chickenBarnDoor').setDepth(10);
+                this.add.existing(chickenBarnDoor);
+                this.doors.push(chickenBarnDoor);
+                this.isPlayerOverlappingDoors.set(chickenBarnDoor, false);
+            } else if(object.name === 'bunnyBarnDoor'){
+                const bunnyBarnDoor = new Door(this, object.x + 7, object.y + 10, 'barnDoor', 'bunnyBarnDoor').setDepth(10);
+                this.add.existing(bunnyBarnDoor);
+                this.doors.push(bunnyBarnDoor);
+                this.isPlayerOverlappingDoors.set(bunnyBarnDoor, false);
+            } else if(object.name === 'cowBarnDoor'){
+                const cowBarnDoor = new Door(this, object.x + 7, object.y + 10, 'cowDoor', 'cowBarnDoor').setDepth(10);
+                this.add.existing(cowBarnDoor);
+                this.doors.push(cowBarnDoor);
+                this.isPlayerOverlappingDoors.set(cowBarnDoor, false);
             } else if(object.name === 'signChicken'){
                 this.add.image(object.x + 8, object.y - 8, 'signChicken').setDepth(11);
             } else if(object.name === 'signBunny'){
                 this.add.image(object.x + 8, object.y - 8, 'signBunny').setDepth(11);
+            } else if(object.name === 'signCow'){
+                this.add.image(object.x + 8, object.y - 8, 'signCow').setDepth(11);
             }
         });
 
@@ -72,6 +92,18 @@ class GameScene extends Phaser.Scene {
         const exitAreaObject = ObjectLayer.objects.find(object => object.name === 'exitArea');
         this.exitArea = this.add.zone(exitAreaObject.x, exitAreaObject.y, exitAreaObject.width, exitAreaObject.height);
         this.physics.world.enable(this.exitArea, Phaser.Physics.Arcade.STATIC_BODY);
+
+        const chickenHouseExitObject = ObjectLayer.objects.find(object => object.name === 'chickenHouseExit');
+        this.chickenExitArea = this.add.zone(chickenHouseExitObject.x, chickenHouseExitObject.y, chickenHouseExitObject.width, chickenHouseExitObject.height);
+        this.physics.world.enable(this.chickenExitArea, Phaser.Physics.Arcade.STATIC_BODY);
+
+        const bunnyHouseExitObject = ObjectLayer.objects.find(object => object.name === 'bunnyHouseExit');
+        this.bunnyExitArea = this.add.zone(bunnyHouseExitObject.x, bunnyHouseExitObject.y, bunnyHouseExitObject.width, bunnyHouseExitObject.height);
+        this.physics.world.enable(this.bunnyExitArea, Phaser.Physics.Arcade.STATIC_BODY);
+        
+        const cowHouseExitObject = ObjectLayer.objects.find(object => object.name === 'cowHouseExit');
+        this.cowExitArea = this.add.zone(cowHouseExitObject.x, cowHouseExitObject.y, cowHouseExitObject.width, cowHouseExitObject.height);
+        this.physics.world.enable(this.cowExitArea, Phaser.Physics.Arcade.STATIC_BODY);
 
         const buyAreaObject = ObjectLayer.objects.find(object => object.name === 'buyArea');
         this.buyArea = this.add.zone(buyAreaObject.x, buyAreaObject.y, buyAreaObject.width, buyAreaObject.height);
@@ -86,24 +118,21 @@ class GameScene extends Phaser.Scene {
         this.uiScene = this.scene.get('UI');
         this.scene.launch('UI');
 
-        // 2145, 800
-        this.player = new Player(this, 208, 2160, 'playerModel', this.uiScene).setDepth(5);
-        this.physics.add.collider(this.player, collision_layer);
+        this.player = new Player(this, 145 * 16, 51 * 16, 'playerModel', this.uiScene).setDepth(5);
+        this.physics.add.collider(this.player, this.collision_layer);
 
-        this.chicken = new Animal(this, 2145, 816, 'chicken');
-        this.physics.add.collider(this.player, this.chicken, this.handlePlayerAnimalCollision, null, this);
-        this.physics.add.collider(this.chicken, collision_layer);
+        this.spawnAnimals('cow', 2, 102, 64);
+        this.spawnAnimals('bunny', 2, 95, 64);
+        this.spawnAnimals('chicken', 2, 102, 58);
 
-        this.cow = new Animal(this, 104 * 16, 69 * 16, 'cow');
-
-        this.physics.add.collider(this.player, this.cow, this.handlePlayerAnimalCollision, null, this);
-        this.physics.add.collider(this.chicken, this.cow);
-        this.physics.add.collider(this.cow, collision_layer);
+        this.spawnAnimals('cow', 3, 17, 64);
+        this.spawnAnimals('bunny', 3, 17, 90);
+        
 
         this.add.image(216, 2135, 'npc').setScale(0.33);
         this.add.image(328, 2135, 'npc').setScale(0.33);
 
-        collision_layer.setCollision(7549, true, collision_layer);
+        this.collision_layer.setCollision(7549, true, this.collision_layer);
 
         this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
         this.cameras.main.startFollow(this.player);
@@ -114,11 +143,19 @@ class GameScene extends Phaser.Scene {
         this.player.update();
         this.checkDoorOverlap(this.marketDoor, 17, 137);
         this.checkExitOverlap(this.player, this.exitArea, 205, 69);
+        this.checkExitOverlap(this.player, this.chickenExitArea, 93.5, 60);
+        this.checkExitOverlap(this.player, this.bunnyExitArea, 103.5, 56);
+        this.checkExitOverlap(this.player, this.cowExitArea, 112, 65);
+
         this.checkMarketArea();
 
         this.doors.forEach(door => {
-            if(door.name === 'barnDoor'){
-                this.checkDoorOverlap(door, 17, 137);
+            if(door.name === 'chickenBarnDoor'){
+                this.checkDoorOverlap(door, 17, 119);
+            } else if(door.name === 'bunnyBarnDoor'){
+                this.checkDoorOverlap(door, 17, 96)
+            } else if(door.name === 'cowBarnDoor'){
+                this.checkDoorOverlap(door, 17, 72);
             }
         })
         
@@ -132,7 +169,7 @@ class GameScene extends Phaser.Scene {
                 this.isPlayerOverlappingDoors.set(door, true);
             } else if (!isPlayerOverlapping && wasPlayerOverlapping) {
                 // Player has left the fencegate area
-                this.time.delayedCall(100, () => {
+                this.time.delayedCall(200, () => {
                     door.closeDoor();
                     this.isPlayerOverlappingDoors.set(door, false);
                 }, [], this);
@@ -140,11 +177,7 @@ class GameScene extends Phaser.Scene {
         });
     }
 
-    handlePlayerAnimalCollision(player, animal) {
-        //player.setVelocity(0);
-        //animal.setVelocity(0);
-        player.body.reset(player.x, player.y);
-    }
+
 
     checkDoorOverlap(door, teleportX, teleportY){
         if (this.isTransitioning) return;
@@ -155,6 +188,11 @@ class GameScene extends Phaser.Scene {
             this.isTransitioning = true; // Set the transition flag
             this.isPlayerOverlappingDoor = true;
             door.openDoor();
+            if(door.name === 'marketDoor'){
+                this.marketDoorSound.play();
+            } else {
+                this.doorSound.play();
+            }
             this.cameras.main.fadeOut(1000, 0, 0, 0);
             this.cameras.main.once('camerafadeoutcomplete', () => {
                 this.teleport(this.player, teleportX, teleportY);
@@ -177,8 +215,8 @@ class GameScene extends Phaser.Scene {
         if (isPlayerOverlapping) {
             this.isTransitioning = true; // Set the transition flag
             this.cameras.main.fadeOut(1000, 0, 0, 0);
-
             this.cameras.main.once('camerafadeoutcomplete', () => {
+                this.closeDoorSound.play();
                 this.teleport(player, teleportX, teleportY);
                 this.cameras.main.fadeIn(2000, 0, 0, 0);
                 this.cameras.main.once('camerafadeincomplete', () => {
@@ -203,6 +241,28 @@ class GameScene extends Phaser.Scene {
 
     teleport(player, positionX, positionY){
         player.setPosition(positionX * 16, positionY * 16);
+    }
+
+    spawnAnimals(textureKey, count, spawnX, spawnY){
+        let counter = count;
+        let x = spawnX;
+        let y = spawnY;
+        while(counter > 0){
+            const animal = new Animal(this, x * 16, y * 16, textureKey).setDepth(2);
+            this.animals.push(animal);
+
+            this.physics.add.collider(this.player, animal, this.handleCollision, null, this);
+            this.physics.add.collider(animal, this.collision_layer);
+            this.physics.add.collider(animal, this.animals);
+
+            counter--;
+            x += 2;
+        }
+    }
+
+    handleCollision(player, animal) {
+        player.setVelocity(0);
+        animal.setVelocity(0);
     }
 }
 

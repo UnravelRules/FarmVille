@@ -11,7 +11,7 @@ class Crops {
 
     growCrops() {
         setTimeout(() => {
-            console.log("Growing crops...");
+            //console.log("Growing crops...");
             this.tile.index += 1;
             this.tile.properties.growthStage += 1;
             this.scene.crops.dirty = true;
@@ -19,7 +19,7 @@ class Crops {
             if (this.tile.properties.growthStage < 5) {
                 this.growCrops();
             }
-        }, 200);
+        }, 500);
     }
 }
 

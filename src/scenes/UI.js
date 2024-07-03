@@ -15,9 +15,14 @@ class UI extends Phaser.Scene {
         ]);
         this.player = null;
         this.isInventoryOpenedManually = false;
+        this.sellMenuOpen = false;
     }
 
     create() {
+        this.cameras.main.fadeIn(3500, 0, 0, 0);
+        this.openInventorySound = this.sound.add('openInventory').setRate(2);
+        this.closeInventorySound = this.sound.add('closeInventory').setRate(2);
+
         this.ui_options = this.add.image(150, 36, 'ui_options').setScale(3.5);
 
         this.createIcon(this.ui_options.x + 73.5, this.ui_options.y - 5, 'einstellungen', this.openEinstellungen);
@@ -40,6 +45,7 @@ class UI extends Phaser.Scene {
 
         this.input.on('dragstart', (pointer, gameObject) => {
             gameObject.setTint(0xff0000);
+            gameObject.startDragRight = pointer.rightButtonDown();
         });
 
         this.input.on('drag', (pointer, gameObject, dragX, dragY) => {
@@ -52,8 +58,11 @@ class UI extends Phaser.Scene {
             if (!this.isValidDropArea(gameObject)) {
                 gameObject.x = gameObject.input.dragStartX;
                 gameObject.y = gameObject.input.dragStartY;
-            } else {
-                this.sellItem(gameObject);
+            } else if(this.sellMenuOpen) {
+                this.sellAllItems(gameObject);
+                gameObject.x = gameObject.input.dragStartX;
+                gameObject.y = gameObject.input.dragStartY;
+            } else{
                 gameObject.x = gameObject.input.dragStartX;
                 gameObject.y = gameObject.input.dragStartY;
             }
@@ -152,8 +161,11 @@ class UI extends Phaser.Scene {
         }
     }
 
-    openInventar(){
+    openInventar(reload){
         if(!this.isInventoryOpen){
+            if(!reload){
+                this.openInventorySound.play();
+            }
             this.inventory.setVisible(true);
             if(this.carrotCount.text != 0){
                 this.carrotIcon.setVisible(true);
@@ -168,7 +180,6 @@ class UI extends Phaser.Scene {
                 this.berriesCount.setVisible(true);
             } 
             if(this.pumpkinCount.text != 0){
-                console.log(this.pumpkinCount.text)
                 this.pumpkinIcon.setVisible(true);
                 this.pumpkinCount.setVisible(true);
             } 
@@ -185,8 +196,13 @@ class UI extends Phaser.Scene {
         }
     }
 
-    closeInventory(){
+    closeInventory(reload){
+        console.log(reload);
         if(this.isInventoryOpen){
+            if(!reload){
+
+                this.closeInventorySound.play();
+            }
             this.inventory.setVisible(false);
             if(this.carrotIcon != null){
                 this.carrotIcon.setVisible(false);
@@ -249,6 +265,7 @@ class UI extends Phaser.Scene {
         this.sellOption.setVisible(true);
         this.isInventoryOpenedManually = false;
         this.inventoryIcon.disableInteractive();
+        this.sellMenuOpen = true;
     }
 
     closeMenu(){
@@ -256,6 +273,7 @@ class UI extends Phaser.Scene {
             this.closeInventory();
             this.sellOption.setVisible(false);
             this.inventoryIcon.setInteractive();
+            this.sellMenuOpen = false;
         }
     }
 
@@ -275,9 +293,16 @@ class UI extends Phaser.Scene {
         this.updateInventory();
     }
 
+    sellAllItems(gameObject){
+        const crop = gameObject.texture.key;
+        const itemCount = this.items.get(crop);
+        this.items.set(crop, 0);
+        this.moneyCount += 100 * itemCount;
+        this.updateInventory();
+    }
+
     updateInventory(){
         for(const [key, value] of this.items){
-            console.log(key, value)
             if(value > 0){
                 if(key === 'carrot'){
                     this.carrotCount.setText(value);
@@ -293,8 +318,10 @@ class UI extends Phaser.Scene {
                     this.potatoCount.setText(value);
                 }
                 this.moneyText.setText(this.moneyCount + '€');
-                this.closeInventory();
-                this.openInventar();
+                if(this.isInventoryOpen){
+                    this.closeInventory(1);
+                    this.openInventar(1);
+                }
             } else if(value === 0){
                 if(key === 'carrot'){
                     this.carrotCount.setText(value);
@@ -322,8 +349,10 @@ class UI extends Phaser.Scene {
                     this.potatoCount.setVisible(false);
                 }
                 this.moneyText.setText(this.moneyCount + '€');
-                this.closeInventory();
-                this.openInventar();
+                if(this.isInventoryOpen){
+                    this.closeInventory(1);
+                    this.openInventar(1);
+                }
             }
         }
     }

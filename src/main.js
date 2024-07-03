@@ -1,5 +1,6 @@
 import Preloader from "./scenes/Preloader.js";
 import GameScene from "./scenes/GameScene.js";
+import StartScene from "./scenes/StartScene.js";
 import UI from "./scenes/UI.js";
 
 const config = {
@@ -13,7 +14,7 @@ const config = {
             debug: false
         }
     },
-    scene: [Preloader, GameScene, UI]
+    scene: [Preloader, StartScene, GameScene, UI]
 };
 
 var game = new Phaser.Game(config);

@@ -7,8 +7,6 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.scene = scene;
         this.isPlayerOverlappingFarmingArea = false;
         this.uiScene = uiScene;
-        //this.body.setImmovable(true); // Make the animal immovable on collision
-        //this.scene.physics.world.enable(this);
         this.currentSeed = 'carrotSeed';
         this.seeds = new Map();
         this.seeds.set('carrotSeed', 5049);
@@ -18,11 +16,15 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.seeds.set('cornSeed', 5641);
         this.seeds.set('potatoSeed', 5789);
 
-        this.setSize(16, 16);
+        this.walkSound = this.scene.sound.add('walk', {volume: 0.1});
+        this.plantSound = this.scene.sound.add('plant', {volume: 0.2})
+        this.harvestSound = this.scene.sound.add('harvest', {volume: 0.2})
+
+        this.setSize(24, 32);
         this.setScale(0.3);
-        this.setCollideWorldBounds(true);
+        //this.setCollideWorldBounds(true);
         
-        this.velocity = 200;
+        this.velocity = 100;
         
         this.lastDirection = 'down';
 
@@ -41,6 +43,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
 
         this.prevX = x;
         this.prevY = y;
+        this.isMoving = false;
     }
 
     createAnimations(scene){
@@ -103,25 +106,38 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             this.setVelocityY(0);
             this.anims.play('left', true);
             this.lastDirection = 'turnLeft';
+            this.isMoving = true;
         } else if(this.cursors.right.isDown){
             this.setVelocityX(this.velocity);
             this.setVelocityY(0);
             this.anims.play('right', true);
             this.lastDirection = 'turnRight';
+            this.isMoving = true;
         } else if(this.cursors.up.isDown){
             this.setVelocityY(-this.velocity);
             this.setVelocityX(0);
             this.anims.play('up', true);
             this.lastDirection = 'turnUp';
+            this.isMoving = true;
         } else if(this.cursors.down.isDown){
             this.setVelocityY(this.velocity);
             this.setVelocityX(0);
             this.anims.play('down', true);
             this.lastDirection = 'turnDown';
+            this.isMoving = true;
         } else{
             this.setVelocityX(0);
             this.setVelocityY(0);
             this.anims.play(this.lastDirection)
+            this.isMoving = false;
+        }
+        
+        if(this.isMoving){
+            if(!this.walkSound.isPlaying){
+                this.walkSound.play();
+            }
+        } else {
+            this.walkSound.pause();
         }
     }
 
@@ -132,16 +148,18 @@ class Player extends Phaser.Physics.Arcade.Sprite {
 
             const tile = this.scene.crops.getTileAt(playerTileX, playerTileY);
             if(!tile.properties.isCropPlanted){
+                this.plantSound.play();
                 tile.properties.isCropPlanted = true;
                 tile.properties.crop = this.currentSeed;
                 new Crop(this.scene, tile, this.seeds.get(this.currentSeed));
 
             } else if(tile.properties.growthStage === 5){
-                console.log(tile.properties.crop);
+                //console.log(tile.properties.crop);
                 this.uiScene.addItemToInventory(tile.properties.crop);
                 tile.index = 7550;
                 tile.properties.isCropPlanted = false;
                 tile.properties.growthStage = 0;
+                this.harvestSound.play();
             }
         } 
     }
@@ -149,8 +167,10 @@ class Player extends Phaser.Physics.Arcade.Sprite {
     openMenu(area){
         const keyDown = Phaser.Input.Keyboard.JustDown(this.cursors.interact)
         if(keyDown && area === 'buyArea'){
+            //console.log(area)
             this.uiScene.openBuyMenu();
         } else if(keyDown && area === 'sellArea'){
+            //console.log(area)
             this.uiScene.openSellMenu();
         }
     }
@@ -167,10 +187,10 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         const tile = this.scene.crops.getTileAt(playerTileX, playerTileY);
 
         if(tile && tile.layer.name === 'Crops' && !this.isPlayerOverlappingFarmingArea){
-            console.log("Jetzt kann gefarmt werden")
+            //console.log("Jetzt kann gefarmt werden")
             this.isPlayerOverlappingFarmingArea = true;
         } else if((!tile || tile.layer.name !== 'Crops') && this.isPlayerOverlappingFarmingArea){
-            console.log("Jetzt kann nicht mehr gefarmt werden")
+            //console.log("Jetzt kann nicht mehr gefarmt werden")
             this.isPlayerOverlappingFarmingArea = false;
         }
     }
@@ -200,6 +220,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.playerOnFarmingArea();
         this.plant();
         this.switchSeeds();
+        //this.showCoordinates();
     }
 }
 

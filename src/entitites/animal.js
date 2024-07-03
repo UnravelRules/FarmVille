@@ -3,17 +3,17 @@ class Animal extends Phaser.Physics.Arcade.Sprite {
         super(scene, x, y, textureKey);
         scene.add.existing(this);
         scene.physics.add.existing(this);
-
         this.scene = scene;
         this.textureKey = textureKey;
         this.direction = 0;
         this.lastDirection = textureKey + '_down';
         this.moveSpeed = 20; // Speed of movement
-        this.moveDuration = this.randomIntFromInterval(2000, 5000); // Duration to move in one direction (ms)
-        this.idleDuration = this.randomIntFromInterval(2000, 9000); // Duration to stay idle (ms)
+        this.moveDuration = this.randomIntFromInterval(1000, 5000);
+        this.idleDuration = this.randomIntFromInterval(2000, 9000);
         this.isMoving = false;
 
         this.body.setImmovable(true); // Make the animal immovable on collision
+        this.body.setCollideWorldBounds(true);
 
         this.createAnimations(scene);
         this.startMovementCycle();
@@ -47,6 +47,7 @@ class Animal extends Phaser.Physics.Arcade.Sprite {
             frameRate: 10,
             repeat: -1
         });
+
 
         scene.anims.create({
             key: this.textureKey + '_turnLeft',
@@ -85,7 +86,7 @@ class Animal extends Phaser.Physics.Arcade.Sprite {
     move() {
         if (!this.isMoving) {
             this.isMoving = true;
-            this.direction = Math.floor(Math.random() * 4 + 1);
+            this.direction = Math.floor(Math.random() * 5 + 1);
             this.scene.time.delayedCall(this.moveDuration, () => {
                 this.anims.play(this.lastDirection);
                 this.setVelocity(0);
@@ -119,6 +120,10 @@ class Animal extends Phaser.Physics.Arcade.Sprite {
                     break;
             }
         }
+    }
+
+    rest(){
+
     }
 
     randomIntFromInterval(min, max){
