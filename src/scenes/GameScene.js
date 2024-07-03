@@ -124,9 +124,17 @@ class GameScene extends Phaser.Scene {
         this.spawnAnimals('cow', 2, 102, 64);
         this.spawnAnimals('bunny', 2, 95, 64);
         this.spawnAnimals('chicken', 2, 102, 58);
+        this.spawnAnimals('chicken', 5, 144, 60);
+        this.spawnAnimals('chicken', 6, 162, 61);
+        this.spawnAnimals('cow', 6, 162, 64);
 
+        // Tiere für Stallhäuser
         this.spawnAnimals('cow', 3, 17, 64);
         this.spawnAnimals('bunny', 3, 17, 90);
+        this.spawnAnimals('chicken', 3, 17, 113)
+
+
+
         
 
         this.add.image(216, 2135, 'npc').setScale(0.33);

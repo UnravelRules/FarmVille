@@ -6,12 +6,12 @@ class UI extends Phaser.Scene {
         this.inventory = null;
         this.isInventoryOpen = false;
         this.items = new Map([
-            ['carrot', 6],
-            ['tomato', 3],
-            ['berries', 7],
-            ['pumpkin', 5],
+            ['carrot', 0],
+            ['tomato', 0],
+            ['berries', 0],
+            ['pumpkin', 0],
             ['corn', 0],
-            ['potato', 12]
+            ['potato', 0]
         ]);
         this.player = null;
         this.isInventoryOpenedManually = false;
@@ -20,8 +20,8 @@ class UI extends Phaser.Scene {
 
     create() {
         this.cameras.main.fadeIn(3500, 0, 0, 0);
-        this.openInventorySound = this.sound.add('openInventory').setRate(2);
-        this.closeInventorySound = this.sound.add('closeInventory').setRate(2);
+        this.openInventorySound = this.sound.add('openInventory', {volume: 0.3}).setRate(2);
+        this.closeInventorySound = this.sound.add('closeInventory' , {volume: 0.3}).setRate(2);
 
         this.ui_options = this.add.image(150, 36, 'ui_options').setScale(3.5);
 
@@ -197,10 +197,8 @@ class UI extends Phaser.Scene {
     }
 
     closeInventory(reload){
-        console.log(reload);
         if(this.isInventoryOpen){
             if(!reload){
-
                 this.closeInventorySound.play();
             }
             this.inventory.setVisible(false);

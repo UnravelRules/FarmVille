@@ -17,7 +17,7 @@ class StartScene extends Phaser.Scene {
         
         this.startscreenMusic = this.sound.add('startscreenMusic', {volume: 0.1})
         this.startscreenMusic.play();
-        this.clickSound = this.sound.add('clickSound', {volume: 0.2});
+        this.clickSound = this.sound.add('clickSound', {volume: 0.3});
     }
 
     createButton(x, y, texture, callback, scale){
