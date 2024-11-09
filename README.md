@@ -1,6 +1,6 @@
 # FarmVille
 
-Willkommen zu FarmVille! FarmVille ist ein Web-basiertes Spiel, in welchem der Benutzer seine eigene Farm aufbauen kann! Dazu gehört das anbauen und ernten von verschiedenen Pflanzen und der Verkauf der Waren.
+Willkommen zu FarmVille! FarmVille ist ein Web-basiertes Spiel, in welchem der Benutzer seine eigene Farm aufbauen kann! Dazu gehört das Anbauen und Ernten von verschiedenen Pflanzen und der Verkauf von Endprodukten.
 Das Projekt wurde als Teil meines zweiten Semester an der Hochschule Bremen entwickelt und bot eine gute Möglichkeit, erste Game-Development Erfahrungen mit JavaScript zu sammeln!
 
 ## Autoren
